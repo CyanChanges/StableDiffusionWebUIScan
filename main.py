@@ -85,7 +85,7 @@ async def scan_port(port: int, target: str, session: ClientSession, job: Progres
     try:
         logger.trace('Connecting to http://{target}:{port}', target=target, port=port)
         async with session.get(f'http://{target}:{port}', headers=headers) as resp:
-            if resp.ok:
+            if 200 <= resp.status < 300:
                 text = await resp.text()
                 if MATCH in text:
                     logger.info(
