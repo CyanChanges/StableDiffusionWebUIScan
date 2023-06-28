@@ -7,6 +7,7 @@ from asyncio import CancelledError
 
 from aiohttp import ClientSession, ClientTimeout, ServerDisconnectedError, ClientResponseError, ClientConnectionError, \
     TCPConnector, AsyncResolver, ClientError
+from aiohttp_socks import ProxyConnector
 from loguru import logger
 from rich.console import Console
 from rich.highlighter import NullHighlighter
@@ -38,8 +39,10 @@ logger.add(
     level='INFO'
 )
 
-MAX_ONCE_PORT = 10000  # 每个地址一次扫描端口数
-MAX_ONCE_ADDRESS = 4  # 每次扫描地址数
+MAX_ONCE_PORT = 5000  # 每个地址一次扫描端口数
+DELAY_ONCE_PORT = 10  # 一次扫完扫描端口等待时间 (s)
+MAX_ONCE_ADDRESS = 2  # 每次扫描地址数
+DELAY_ONCE_ADDRESS = 10  # 一次扫描地址等待时间 (s)
 CONNECTION_TIMEOUT = 20  # 连接超时 (s)
 PORT_RANGES = [(200, 751), (10000, 65500)]  # 端口范围
 REFRESH_PER_SECOND = 3  # Rich 刷新率
@@ -82,7 +85,7 @@ async def scan_port(port: int, target: str, session: ClientSession, job: Progres
     try:
         logger.trace('Connecting to http://{target}:{port}', target=target, port=port)
         async with session.get(f'http://{target}:{port}', headers=headers) as resp:
-            if resp.ok:
+            if 200 <= resp.status < 300:
                 # text = await resp.text()
                 # if MATCH in text:
                 logger.info(
@@ -135,6 +138,7 @@ async def scan_address(addr: IPAddress, timeout: ClientTimeout = ClientTimeout(t
                 await asyncio.gather(*tuple(tasks))
                 tasks = set()
                 cnt = 0
+                await asyncio.sleep(DELAY_ONCE_PORT)
             tasks |= {
                 *[scan_port(port + i, target, session, job, task_id) for i in range(once_cnt)]
             }
@@ -186,6 +190,7 @@ async def scan():
                 overall_progress.advance(overall_task, cnt)
                 tasks = []
                 cnt = 0
+                await asyncio.sleep(DELAY_ONCE_ADDRESS)
             tasks.append(scan_address(addr, conn=conn, job=job_progress))
             cnt += 1
 
@@ -199,6 +204,8 @@ async def scan():
 
     logger.info('Found {0} matched', len(online))
     logger.info('Saved to {0}', file_path.absolute())
+
+    loop.run_until_complete(asyncio.sleep(0.250))
 
 
 # addresses = (
@@ -217,3 +224,4 @@ loop = asyncio.new_event_loop()
 asyncio.set_event_loop(loop)
 
 loop.run_until_complete(scan())
+loop.close()
