@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/StableDiffustionWebUIScan.iml" filepath="$PROJECT_DIR$/.idea/StableDiffustionWebUIScan.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../StableDiffusionWebUIScan/.idea/StableDiffusionWebUIScan.iml" filepath="$PROJECT_DIR$/../StableDiffusionWebUIScan/.idea/StableDiffusionWebUIScan.iml" />
     </modules>
   </component>
 </project>

@@ -11,7 +11,6 @@ from rich.panel import Panel
 from rich.progress import Progress, SpinnerColumn, BarColumn, TextColumn
 from rich.table import Table
 
-
 job_progress = Progress(
     "{task.description}",
     SpinnerColumn(),
